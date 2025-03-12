@@ -1,6 +1,5 @@
 #include "jmake.h"
 
-void	create_project(char *name, t_settings *set)
+void	create_project(char *name)
 {
-	mkdir(name, 0777);
 }

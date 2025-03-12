@@ -25,5 +25,4 @@ void	create_dir(char *dname)
 		fprintf(stderr, "Error creating dir %s\n", dname);
 		exit(EXIT_FAILURE);
 	}
-
 }
