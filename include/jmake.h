@@ -34,5 +34,8 @@ typedef struct	s_cmd
 
 void	run_cmd(t_cmd *cmd);
 void	free_cmd(t_cmd *cmd);
+void	populate_default_config(t_settings *set);
+char	*read_custom_file(char *str);
+int		check_conf_exists(char *str, t_settings *s);
 
 #endif
