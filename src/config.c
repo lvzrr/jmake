@@ -1,12 +1,19 @@
 #include "jmake.h"
 
-int	check_conf_exists(char *conf)
+int	check_conf_exists(char *conf, t_settings *set)
 {
 	int	fd;
 
-	if (!conf) return (-1);
-	if ((fd = open(conf, O_RDONLY)) < 0)
+	if (!conf)
+	{
+		populate_default_config(set);
 		return (-1);
+	}
+	if ((fd = open(conf, O_RDONLY)) < 0)
+	{
+		populate_default_config(set);
+		return (-1);
+	}
 	close (fd);
 	return (1);
 }
