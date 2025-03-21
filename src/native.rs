@@ -66,7 +66,7 @@ pub fn native_runner(files: Vec<PathBuf>, conf: &CONFIG, t: PathType) -> Result<
                     Ok(_) =>
                     {
                         let elapsed = now.elapsed();
-                        println!("\x1b[32m[PASSED]\x1b[0m {} ({}ms)", class, elapsed.as_millis());
+                        println!("\x1b[32m[SUCCESSFUL]\x1b[0m {} ({}ms)", class, elapsed.as_millis());
                     }
                     Err(e) =>
                     {
