@@ -1,0 +1,8 @@
+[package]
+name = "jmake"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+regex = "1.11.1"
+
