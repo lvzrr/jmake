@@ -22,6 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
         src : String::from("src"),
         bin : String::from("bin"),
         lib : String::from("lib"),
+        test : String::from("test"),
         cache: PathBuf::from(env::var("HOME").unwrap())
         .join(".cache/jmake")
         .to_string_lossy()
@@ -62,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                 let target = if args.len() == 2 { "" } else { &args[2] };
 
                 let mut commands: Vec<String> = Vec::new();
-                let cmd: String = create_compile_command(target, &conf); 
+                let cmd: String = create_compile_command(target, &conf, PathType::SRC); 
                 if cmd.is_empty()
                 {
                     println!("[COMPILER] Nothing to compile.");
@@ -70,11 +71,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                 else
                 {
                     commands.push(cmd);
-                    launch_commands(conf.pre.clone())
+                    launch_commands(conf.pre.clone(), &conf)
                         .map_err(|e| format!("Failed running PRE commands: {}", e))?;
-                    launch_commands(commands)
+                    launch_commands(commands, &conf)
                         .map_err(|e| format!("Compilation failed: {}", e))?;
-                    launch_commands(conf.post.clone())
+                    launch_commands(conf.post.clone(), &conf)
                         .map_err(|e| format!("Failed running POST commands: {}", e))?;
                 }
                 if args.contains(&"-r".to_string())
@@ -88,6 +89,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                     let entry_point = &args[3];
                     create_release(target, &conf, entry_point);
                 }
+            }
+            "test" =>
+            {
+                if args.len() < 3
+                {
+                    return Err("Missing main class for `test`".into());
+                }
+                let target = if args.len() == 2 { "" } else { &args[2] };
+
+                let mut commands: Vec<String> = Vec::new();
+                let cmd: String = create_compile_command(target, &conf, PathType::TESTS); 
+                if cmd.is_empty()
+                {
+                    println!("[COMPILER] Nothing to compile.");
+                }
+                else
+                {
+                    commands.push(cmd);
+                    launch_commands(conf.pre.clone(), &conf)
+                        .map_err(|e| format!("Failed running PRE commands: {}", e))?;
+                    launch_commands(commands, &conf)
+                        .map_err(|e| format!("Compilation failed: {}", e))?;
+                    launch_commands(conf.post.clone(), &conf)
+                        .map_err(|e| format!("Failed running POST commands: {}", e))?;
+                }
+                run_tests(&target, &conf);
             }
             "run" =>
             {

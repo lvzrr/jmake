@@ -4,6 +4,7 @@ pub struct  CONFIG
     pub pre:            Vec<String>,
     pub bin:            String,
     pub src:            String,
+    pub test:            String,
     pub lib:            String,
     pub classpath:      String,
     pub post:           Vec<String>,

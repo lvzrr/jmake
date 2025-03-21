@@ -71,6 +71,7 @@ pub fn parse_file(mut defaults: CONFIG) -> CONFIG {
             "src" => defaults.src = value.trim_matches('\'').to_string(),
             "lib" => defaults.lib = value.trim_matches('\'').to_string(),
             "bin" => defaults.bin = value.trim_matches('\'').to_string(),
+            "test" => defaults.bin = value.trim_matches('\'').to_string(),
             "classpath" => defaults.classpath = value.trim_matches('\'').to_string(),
             "comp_flags" => defaults.comp_flags = value.trim_matches('\'').to_string(),
             "runner_flags" => defaults.runner_flags = value.trim_matches('\'').to_string(),

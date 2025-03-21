@@ -2,10 +2,16 @@ use std::{fs, path::{PathBuf, Path}, time::SystemTime};
 use crate::packages::*;
 use crate::config::*;
 
-pub fn  get_target_files(target: &str, conf: &CONFIG, check: bool) -> Result<Vec<PathBuf>, String>
+pub fn  get_target_files(target: &str, conf: &CONFIG, check: bool, t: PathType) -> Result<Vec<PathBuf>, String>
 {
+    let ext: &str = match t
+    {
+        PathType::SRC => ".java",
+        PathType::TESTS => ".java",
+        PathType::CLASS => ".class",
+    };
     let mut files: Vec<PathBuf> = Vec::new();
-    let target_dir: PathBuf = package_to_path(&target, PathType::SRC, &conf);
+    let target_dir: PathBuf = package_to_path(&target, t, &conf);
     if !target_dir.is_dir()
     {
         return Err(format!("'{}' is not a directory", target_dir.display()));
@@ -16,10 +22,10 @@ pub fn  get_target_files(target: &str, conf: &CONFIG, check: bool) -> Result<Vec
         let entry = entry.map_err(|e| format!("Couldn't read entry: {}", e))?;
         if let Some(filename) = entry.file_name().to_str()
         {
-            if filename.ends_with(".java") && check_incremental(&entry.path(), conf, check)
-            {
-                files.push(entry.path());
-            }
+                if filename.ends_with(ext) && check_incremental(&entry.path(), conf, check)
+                {
+                    files.push(entry.path());
+                }
         }
     }
     Ok(files)

@@ -23,14 +23,14 @@ pub fn  force_build_dir(package: &str, conf: &CONFIG) -> Result<(), String>
     Ok(())
 }
 
-pub fn create_compile_command(target: &str, conf: &CONFIG) -> String
+pub fn create_compile_command(target: &str, conf: &CONFIG, t: PathType) -> String
 {
     if let Err(e) = force_build_dir(target, conf)
     {
         eprintln!("Error creating build dir: {}", e);
         return "".to_string();
     }
-    let mut files: Vec<PathBuf> = match get_target_files(target, conf, true)
+    let mut files: Vec<PathBuf> = match get_target_files(target, conf, true, t)
     {
         Ok(f) => f,
         Err(e) => {
@@ -55,39 +55,41 @@ pub fn create_compile_command(target: &str, conf: &CONFIG) -> String
     command
 }
 
-pub fn  launch_commands(commands: Vec<String>) -> Result<(), std::io::Error>
+pub fn launch_commands(commands: Vec<String>, conf: &CONFIG) -> Result<(), std::io::Error>
 {
-        for cmd in commands
+    for chunk in commands.chunks(conf.threads)
+    {
+        let mut handles = Vec::new();
+        for cmd in chunk.iter().filter(|c| !c.is_empty())
         {
-            if !cmd.is_empty()
-            {
-                println!("[COMPILER] {}", &cmd);
-            }
-            let handle = thread::spawn(move ||{
+            println!("[COMPILER] {}", cmd);
+            let cmd = cmd.clone();
+            let handle = thread::spawn(move || {
                 let status = Command::new("sh")
                     .arg("-c")
                     .arg(&cmd)
                     .status();
-                if let Ok(status) = status
-                {
-                    if !status.success()
-                    {
-                        eprintln!("Command `{}` failed to run", &cmd);
-                    }
-                }
-                else
-                {
-                    eprintln!("Error executing `{}`", &cmd);
+
+                match status {
+                    Ok(status) if status.success() => (),
+                    Ok(_) => eprintln!("Command `{}` failed to run", cmd),
+                    Err(e) => eprintln!("Error executing `{}`: {}", cmd, e),
                 }
             });
-            handle.join().expect("Error handling join");
+
+            handles.push(handle);
         }
+        for handle in handles
+        {
+            handle.join().expect("Failed to join thread");
+        }
+    }
     Ok(())
 }
 
 pub fn create_release(target: &str, conf: &CONFIG, entry: &str)
 {
-    let files = match get_target_files(target, conf, false)
+    let files = match get_target_files(target, conf, false, PathType::SRC)
     {
         Ok(f) => f,
         Err(e) => {
