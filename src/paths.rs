@@ -2,7 +2,7 @@ use std::{fs, path::{PathBuf, Path}, time::SystemTime};
 use crate::packages::*;
 use crate::config::*;
 
-pub fn  get_target_files(target: &str, conf: &CONFIG) -> Result<Vec<PathBuf>, String>
+pub fn  get_target_files(target: &str, conf: &CONFIG, check: bool) -> Result<Vec<PathBuf>, String>
 {
     let mut files: Vec<PathBuf> = Vec::new();
     let target_dir: PathBuf = package_to_path(&target, PathType::SRC, &conf);
@@ -16,7 +16,7 @@ pub fn  get_target_files(target: &str, conf: &CONFIG) -> Result<Vec<PathBuf>, St
         let entry = entry.map_err(|e| format!("Couldn't read entry: {}", e))?;
         if let Some(filename) = entry.file_name().to_str()
         {
-            if filename.ends_with(".java") && check_incremental(&entry.path(), conf)
+            if filename.ends_with(".java") && check_incremental(&entry.path(), conf, check)
             {
                 files.push(entry.path());
             }
@@ -25,8 +25,12 @@ pub fn  get_target_files(target: &str, conf: &CONFIG) -> Result<Vec<PathBuf>, St
     Ok(files)
 }
 
-pub fn check_incremental(file: &Path, conf: &CONFIG) -> bool
+pub fn check_incremental(file: &Path, conf: &CONFIG, check: bool) -> bool
 {
+    if !check
+    {
+        return true;
+    }
     let class_file = file.strip_prefix(&conf.src)
         .map(|rel_path| PathBuf::from(&conf.bin).join(rel_path))
         .unwrap_or_else(|_| file.to_path_buf())

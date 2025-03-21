@@ -23,45 +23,46 @@ pub fn  force_build_dir(package: &str, conf: &CONFIG) -> Result<(), String>
     Ok(())
 }
 
-pub fn  create_compile_commands(target: &str, conf: &CONFIG) -> Vec<String>
+pub fn create_compile_command(target: &str, conf: &CONFIG) -> String
 {
-    match force_build_dir(&target, &conf)
+    if let Err(e) = force_build_dir(target, conf)
     {
-        Ok(()) => (),
-        Err(_) => return Vec::new(),
+        eprintln!("Error creating build dir: {}", e);
+        return "".to_string();
     }
-    let mut files: Vec<PathBuf> = match get_target_files(target, &conf)
+    let mut files: Vec<PathBuf> = match get_target_files(target, conf, true)
     {
         Ok(f) => f,
-        Err(e) => 
-        {
+        Err(e) => {
             eprintln!("Error: {}", e);
-            return Vec::new();
+            return "".to_string();
         }
     };
     if files.is_empty()
     {
-        println!("[COMPILER] Nothing to do");
-        return Vec::new();
+        return "".to_string();
     }
-    let mut commands: Vec<String> = Vec::new();
     files = topological_sort(files);
+    let mut command = format!(
+        "javac -cp \"{}\" -d {} {}",
+        conf.classpath, conf.bin, conf.comp_flags
+    );
     for file in files
     {
-        commands.push(format!("javac -cp {} -d {} {} {}", 
-                      format!("\"{}\"", conf.classpath), conf.bin, conf.comp_flags, file.display()));
+        command.push(' ');
+        command.push_str(&file.display().to_string());
     }
-    commands
+    command
 }
 
-pub fn  launch_commands(commands: Vec<String>, conf: &CONFIG) -> Result<(), std::io::Error>
+pub fn  launch_commands(commands: Vec<String>) -> Result<(), std::io::Error>
 {
-    for chunk in commands.chunks(conf.threads as usize)
-    {
-        let chunk = chunk.to_vec();
-        for cmd in chunk
+        for cmd in commands
         {
-            println!("[COMPILER] {}", &cmd);
+            if !cmd.is_empty()
+            {
+                println!("[COMPILER] {}", &cmd);
+            }
             let handle = thread::spawn(move ||{
                 let status = Command::new("sh")
                     .arg("-c")
@@ -81,26 +82,29 @@ pub fn  launch_commands(commands: Vec<String>, conf: &CONFIG) -> Result<(), std:
             });
             handle.join().expect("Error handling join");
         }
-    }
     Ok(())
 }
 
-pub fn create_release(target: &str, conf: &CONFIG, entry: &str) {
-    let files = match get_target_files(target, conf) {
+pub fn create_release(target: &str, conf: &CONFIG, entry: &str)
+{
+    let files = match get_target_files(target, conf, false)
+    {
         Ok(f) => f,
         Err(e) => {
             eprintln!("Error: {}", e);
             return;
         }
     };
-    let hash = match create_hash(&files) {
+    let hash = match create_hash(&files)
+    {
         Ok(h) => h,
         Err(e) => {
             eprintln!("Error generating hash: {}", e);
             return;
         }
     };
-    let time = match time::SystemTime::now().duration_since(time::SystemTime::UNIX_EPOCH) {
+    let time = match time::SystemTime::now().duration_since(time::SystemTime::UNIX_EPOCH)
+    {
         Ok(duration) => duration.as_secs(),
         Err(_) => {
             eprintln!("Error: Could not get system time");

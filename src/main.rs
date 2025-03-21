@@ -14,7 +14,7 @@ use crate::compile::*;
 use crate::packages::*;
 use crate::runner::*;
 
-fn main()
+fn main() -> Result<(), Box<dyn std::error::Error>>
 {
     let mut conf: CONFIG = CONFIG
     {
@@ -38,59 +38,62 @@ fn main()
     if args.len() == 1
     {
         print_help();
-        return ();
+        return Ok(());
     }
     match args[1].as_str() {
             "init" =>
             {
                 if args.len() == 2
                 {
-                    if let Err(e) = init_pkg("", &conf)
+                    if let Err(_e) = init_pkg("", &conf)
                     {
-                        eprintln!("{}", e);
+                        return Err("Couldnt initialize non-packaged project".into());
                     }
-                    return ();
+                    return Ok(());
                 }
                 let package = &args[2];
-                if let Err(e) = init_pkg(package, &conf)
+                if let Err(_e) = init_pkg(package, &conf)
                 {
-                    eprintln!("{}", e);
+                    return Err(format!("Couldnt initialize {}", &package).into());
                 }
             }
             "build" =>
             {
-                let target = match args.len()
+                let target = if args.len() == 2 { "" } else { &args[2] };
+
+                let mut commands: Vec<String> = Vec::new();
+                let cmd: String = create_compile_command(target, &conf); 
+                if cmd.is_empty()
                 {
-                    2 => "",
-                    _ => &args[2],
-                };
-                let commands = create_compile_commands(target, &conf);
-                if commands.is_empty()
-                {
-                    ()
+                    println!("[COMPILER] Nothing to compile.");
                 }
-                let _ = launch_commands(conf.pre.clone(), &conf);
-                let _ = launch_commands(commands, &conf);
-                let _ = launch_commands(conf.post.clone(), &conf);
+                else
+                {
+                    commands.push(cmd);
+                    launch_commands(conf.pre.clone())
+                        .map_err(|e| format!("Failed running PRE commands: {}", e))?;
+                    launch_commands(commands)
+                        .map_err(|e| format!("Compilation failed: {}", e))?;
+                    launch_commands(conf.post.clone())
+                        .map_err(|e| format!("Failed running POST commands: {}", e))?;
+                }
                 if args.contains(&"-r".to_string())
                     || args.contains(&"--release".to_string())
                     || args.contains(&"--cache".to_string())
                 {
-                    if args.len() < 4 
+                    if args.len() < 4
                     {
-                        eprintln!("Error: Missing entry point for `build --release`");
-                        return;
+                        return Err("Missing entry point for `build --release`".into());
                     }
                     let entry_point = &args[3];
-                    create_release(&target, &conf, &entry_point);
+                    create_release(target, &conf, entry_point);
                 }
             }
             "run" =>
             {
                 if args.len() < 3
                 {
-                    eprintln!("Error: Missing main class for `run`");
-                    return;
+                    return Err("Missing main class for `run`".into());
                 }
                 let target = &args[2];
                 if args.len() > 3 {
@@ -100,6 +103,7 @@ fn main()
             }
             _ => print_help(),
         }
+        Ok(())
     }
 
     fn print_help() {
