@@ -1,8 +1,9 @@
-use std::{path::PathBuf};
+use std::{path::PathBuf, process::Command};
 use crate::native::*;
 use crate::packages::*;
 use crate::paths::*;
 use crate::config::*;
+use crate::compile::*;
 
 pub fn run(target: &str, conf: &CONFIG) -> Result<(), Box<dyn std::error::Error>>
 {
@@ -15,8 +16,15 @@ pub fn run(target: &str, conf: &CONFIG) -> Result<(), Box<dyn std::error::Error>
 
 pub fn run_tests(target: &str, conf: &CONFIG) -> Result<(), Box<dyn std::error::Error>>
 {
-    let files: Vec<PathBuf> = get_target_files(target, conf, false, PathType::TESTS)
+    let files: Vec<PathBuf> = get_target_files(target, conf, true, PathType::TESTS)
         .expect("Couldn't get target files");
+    let cmd = create_compile_command(target, conf, PathType::TESTS);
+    if !cmd.is_empty() {
+        Command::new("sh")
+            .arg("-c")
+            .arg(&cmd)
+            .status()?;
+    }
     native_runner(files, &conf, PathType::TESTS)?;
     Ok(())
 }
