@@ -74,9 +74,7 @@ pub fn parse_file(mut defaults: CONFIG) -> CONFIG {
             "test" => defaults.bin = value.trim_matches('\'').to_string(),
             "classpath" => defaults.classpath = value.trim_matches('\'').to_string(),
             "comp_flags" => defaults.comp_flags = value.trim_matches('\'').to_string(),
-            "runner_flags" => defaults.runner_flags = value.trim_matches('\'').to_string(),
             "cache" => defaults.cache = value.trim_matches('\'').to_string(),
-            "args" => defaults.args = value.trim_matches('\'').to_string(),
             "threads" => {
                 defaults.threads = match value.trim_matches('\'').parse::<usize>() {
                     Ok(num) => num,

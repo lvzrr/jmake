@@ -3,6 +3,12 @@ name = "jmake"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-regex = "1.11.1"
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
 
+[dependencies]
+jni = { version = "0.21.1", features = ["invocation"] }

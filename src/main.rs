@@ -1,13 +1,14 @@
 mod packages;
+mod native;
 mod paths;
 mod config;
 mod compile;
 mod parser;
 mod hashing;
 mod runner;
-mod dependencies;
 
 use std::{env, path::PathBuf};
+use jni;
 use crate::config::CONFIG;
 use crate::parser::*;
 use crate::compile::*;
@@ -18,21 +19,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
 {
     let mut conf: CONFIG = CONFIG
     {
-        pre : Vec::new(),
-        src : String::from("src"),
-        bin : String::from("bin"),
-        lib : String::from("lib"),
-        test : String::from("test"),
-        cache: PathBuf::from(env::var("HOME").unwrap())
-        .join(".cache/jmake")
-        .to_string_lossy()
-        .to_string(),
-        comp_flags : String::new(),
-        runner_flags : String::new(),
-        args : String::new(),
-        classpath : String::from("bin:lib/*"),
-        post : Vec::new(),
-        threads : std::thread::available_parallelism().unwrap().get(),
+        pre :           Vec::new(),
+        src :           String::from("src"),
+        bin :           String::from("bin"),
+        lib :           String::from("lib"),
+        test :          String::from("test"),
+        cache:          PathBuf::from(env::var("HOME").unwrap())
+                        .join(".cache/jmake")
+                        .to_string_lossy()
+                        .to_string(),
+
+        jvm_options:    Vec::new(),
+        jvm_version:    jni::JNIVersion::V8,
+        comp_flags:     String::new(),
+        run_args:       Vec::new(),
+        classpath:      String::from("bin:lib/*"),
+        post:           Vec::new(),
+        threads:        std::thread::available_parallelism().unwrap().get(),
     };
     conf = parse_file(conf);
     let args: Vec<String> = env::args().collect();
@@ -114,7 +117,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                     launch_commands(conf.post.clone(), &conf)
                         .map_err(|e| format!("Failed running POST commands: {}", e))?;
                 }
-                run_tests(&target, &conf);
+                return run_tests(&target, &conf);
             }
             "run" =>
             {
@@ -124,9 +127,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                 }
                 let target = &args[2];
                 if args.len() > 3 {
-                    conf.args = args[3..].join(" ");
+                    conf.run_args = args[3..].to_vec();
                 }
-                run(&target, &conf);
+               return run(&target, &conf);
             }
             _ => print_help(),
         }
@@ -137,10 +140,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
         println!(
             "Usage (omit bin & src folders):
 
-            jmake [COMMAND] [TARGET] [FLAGS]
+        jmake [COMMAND] [TARGET] [FLAGS]
 
-            jmake init <package>  <flags>        - Initialize a new package
-            jmake build <target>  <flags>        - Build a Java package
-            jmake run <MainClass> <flags>        - Run a compiled Java program"
+        Commands:
+        init <package>              Initialize a new Java package
+        build <target>              Compile Java files from src/
+                                    Use --release <MainClass> to create a .jar
+        test <target>               Compile and run tests from test/
+                                    Will look for classes like <target>.TestsMain
+        run <MainClass> [args...]   Run the given class from bin/
+
+        Examples:
+        jmake init mypkg
+        jmake build mypkg
+        jmake build mypkg --release mypkg.Main
+        jmake test testpkg
+        jmake run mypkg.Main arg1 arg2"
         );
     }

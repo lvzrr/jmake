@@ -3,7 +3,6 @@ use crate::paths::*;
 use crate::packages::*;
 use crate::config::*;
 use crate::hashing::*;
-use crate::dependencies::*;
 
 pub fn  force_build_dir(package: &str, conf: &CONFIG) -> Result<(), String>
 {
@@ -30,7 +29,7 @@ pub fn create_compile_command(target: &str, conf: &CONFIG, t: PathType) -> Strin
         eprintln!("Error creating build dir: {}", e);
         return "".to_string();
     }
-    let mut files: Vec<PathBuf> = match get_target_files(target, conf, true, t)
+    let files: Vec<PathBuf> = match get_target_files(target, conf, true, t)
     {
         Ok(f) => f,
         Err(e) => {
@@ -42,7 +41,6 @@ pub fn create_compile_command(target: &str, conf: &CONFIG, t: PathType) -> Strin
     {
         return "".to_string();
     }
-    files = topological_sort(files);
     let mut command = format!(
         "javac -cp \"{}\" -d {} {}",
         conf.classpath, conf.bin, conf.comp_flags

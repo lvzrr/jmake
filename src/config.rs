@@ -1,4 +1,4 @@
-
+use jni;
 pub struct  CONFIG
 {
     pub pre:            Vec<String>,
@@ -9,9 +9,9 @@ pub struct  CONFIG
     pub classpath:      String,
     pub post:           Vec<String>,
     pub comp_flags:     String,
-    pub runner_flags:   String,
-    pub args:           String,
+    pub run_args:       Vec<String>,
     pub cache:          String,
     pub threads:        usize,
+    pub jvm_version:    jni::JNIVersion,
+    pub jvm_options:    Vec<String>,
 }
-
