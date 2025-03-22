@@ -46,6 +46,9 @@ jmake [command] [target] [flags]
   Compile and run test classes from `test/`.  
   It will look for classes like `<target>.TestsMain`.
 
+- `clean`  
+  Delete the contents of the configured `bin/` directory.
+
 ---
 
 ## 💡 Examples
@@ -56,6 +59,7 @@ jmake build mypkg
 jmake build mypkg --release mypkg.Main
 jmake run mypkg.Main arg1 arg2
 jmake test testpkg
+jmake clean
 ```
 
 ---
@@ -72,15 +76,45 @@ jmake test testpkg
 
 ---
 
+## 📝 Configuration (JMakefile)
+
+You can customize jmake with a `jmakefile` in the project root. Example:
+
+```jmakefile
+src='src_alt'
+test='test_alt'
+lib='external_lib'
+bin='output_bin'
+classpath='output_bin:external_lib:extra_lib/'
+comp_flags='-Xlint'
+cache='/tmp/.jmake_cache'
+jvm_options='-Xmx512m -Dfile.encoding=UTF-8'
+threads='2'
+
+pre={
+    './scripts/precompile.sh',
+    'echo preparing environment...',
+    'python3 tools/generate_inputs.py'
+};
+
+post={
+    './scripts/cleanup.sh',
+    'echo done.'
+};
+```
+
+---
+
 ## 📝 Notes
 
 - If you do not specify a package to `init` or `build`, it will just look for all `*.java` files under `src/`.  
 - Java classes in `lib/` without a package cannot be imported — just use them directly.  
 - jmake will automatically expand `"lib/*"` to include all `.jar`s and include `"lib/"` for `.class` files.  
-- You can configure `classpath`, `threads`, `jvm_options`, and more in a `JMakefile`.  
+- You can configure `classpath`, `threads`, `jvm_options`, and more in a `jmakefile`.  
 
 ---
 
-## 🪪 License
+## 💼 License
 
 MIT License. See the [LICENSE](./LICENSE) file.
+
