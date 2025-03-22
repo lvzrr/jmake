@@ -113,25 +113,27 @@ jmake clean
 You can customize jmake with a `jmakefile` in the project root. Example:
 
 ```jmakefile
-src='src_alt'
-test='test_alt'
-lib='external_lib'
-bin='output_bin'
-classpath='output_bin:external_lib:extra_lib/'
-comp_flags='-Xlint'
-cache='/tmp/.jmake_cache'
-jvm_options='-Xmx512m -Dfile.encoding=UTF-8'
-threads='2'
+src='src'
+test='test'
+lib='lib'
+bin='bin'
+classpath='bin:lib:lib/*'
+comp_flags=''
+cache='~/.cache/jmake'
+jvm_options=''
+threads='4'
+
+//Actually threads will calculate the max amount 
+//allowed for your system by default
 
 pre={
-    './scripts/precompile.sh',
-    'echo preparing environment...',
-    'python3 tools/generate_inputs.py'
+    // './scripts/precompile.sh',
+    // 'echo preparing environment...'
 };
 
 post={
-    './scripts/cleanup.sh',
-    'echo done.'
+    // './scripts/cleanup.sh',
+    // 'echo done.'
 };
 ```
 
