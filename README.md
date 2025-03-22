@@ -1,8 +1,6 @@
 # jmake - Java Build Tool
 
-**jmake** is a minimalistic, fast Java build tool.  
-It supports incremental compilation, native JNI-based test execution,  
-parallel builds, and a cache system for releases.
+**jmake** is a minimalistic, fast Java build tool. It supports incremental compilation, native JNI-based test execution, parallel builds, and a cache system for releases.
 
 ---
 
