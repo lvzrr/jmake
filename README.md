@@ -145,7 +145,7 @@ post={
 ## 📝 Notes
 
 - If you do not specify a package to `init` or `build`, it will just look for all `*.java` files under `src/`.  
-- Java classes in `lib/` without a package cannot be imported — just use them directly.  
+- Java classes in `lib/` without a package cannot be imported, just use them directly.  
 - jmake will automatically expand `"lib/*"` to include all `.jar`s and include `"lib/"` for `.class` files.  
 
 ---
