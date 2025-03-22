@@ -110,7 +110,7 @@ jmake clean
 
 ## 📝 Configuration (JMakefile)
 
-You can customize jmake with a `jmakefile` in the project root. Example:
+You can customize jmake with a `jmakefile` in the project root. These are the default assumed if no jmakefile is provided:
 
 ```jmakefile
 src='src'
