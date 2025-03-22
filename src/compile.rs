@@ -63,8 +63,8 @@ pub fn launch_commands(commands: Vec<String>, conf: &CONFIG) -> Result<(), std::
             println!("[COMPILER] {}", cmd);
             let cmd = cmd.clone();
             let handle = thread::spawn(move || {
-                let status = Command::new("sh")
-                    .arg("-c")
+                let status = Command::new(SHELL)
+                    .arg(FLAG)
                     .arg(&cmd)
                     .status();
 

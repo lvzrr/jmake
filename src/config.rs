@@ -1,4 +1,15 @@
 use jni;
+
+#[cfg(unix)]
+pub const SHELL: &str = "sh";
+#[cfg(unix)]
+pub const FLAG: &str = "-c";
+
+#[cfg(windows)]
+pub const SHELL: &str = "cmd";
+#[cfg(windows)]
+pub const FLAG: &str = "/C";
+
 pub struct  CONFIG
 {
     pub pre:            Vec<String>,

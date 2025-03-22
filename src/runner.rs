@@ -20,8 +20,8 @@ pub fn run_tests(target: &str, conf: &CONFIG) -> Result<(), Box<dyn std::error::
         .expect("Couldn't get target files");
     let cmd = create_compile_command(target, conf, PathType::TESTS);
     if !cmd.is_empty() {
-        Command::new("sh")
-            .arg("-c")
+        Command::new(SHELL)
+            .arg(FLAG)
             .arg(&cmd)
             .status()?;
     }
