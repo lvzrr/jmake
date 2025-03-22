@@ -65,7 +65,7 @@ jmake test testpkg
 - ✓ Incremental compilation  
 - ✓ Native & multi-threaded JVM execution using the JNI  
 - ✓ Auto-expanded classpath with JAR and `.class` support  
-- ✓ Lightweight: binaries under **1MB**  
+- ✓ Lightweight: binaries of **~500kB**  
 - ✓ Cross-platform support (Windows, Linux, macOS)  
 - ✓ Pre/Post build command hooks  
 - ✓ Release system with content-hash caching  
