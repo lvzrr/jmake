@@ -51,6 +51,38 @@ jmake [command] [target] [flags]
 
 ---
 
+## 📊 Project Structure
+
+Here's a typical file layout jmake works with. 
+**Required folders** (you can customize them in the jmakefile) are:
+- `src/` (source files)
+- `bin/` (compiled output)
+- `test/` (test sources)
+
+(All created with `jmake init`)
+
+Everything else is optional:
+
+> [!WARNING]
+> jmake MUST be run in the root for it to work properly
+```
+project-root/
+├── src/                 # [REQUIRED] Java source files
+│   └── MyApp.java
+├── test/                # [REQUIRED] Test source files
+│   └── MyAppTests.java
+├── bin/                 # [REQUIRED] Compiled classes output
+├── lib/                 # [OPTIONAL] External .class or .jar dependencies
+│   ├── helper.class
+│   └── utils.jar
+├── jmakefile            # [OPTIONAL] Configuration file
+└── scripts/             # [OPTIONAL] Pre/Post build scripts
+    ├── precompile.sh
+    └── cleanup.sh
+```
+
+---
+
 ## 💡 Examples
 
 ```bash
