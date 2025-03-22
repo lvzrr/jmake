@@ -53,14 +53,14 @@ pub fn create_compile_command(target: &str, conf: &CONFIG, t: PathType) -> Strin
     command
 }
 
-pub fn launch_commands(commands: Vec<String>, conf: &CONFIG) -> Result<(), std::io::Error>
+pub fn launch_commands(commands: Vec<String>, conf: &CONFIG, msg: &str) -> Result<(), std::io::Error>
 {
     for chunk in commands.chunks(conf.threads)
     {
         let mut handles = Vec::new();
         for cmd in chunk.iter().filter(|c| !c.is_empty())
         {
-            println!("[COMPILER] {}", cmd);
+            println!("[{}] {}", &msg,cmd);
             let cmd = cmd.clone();
             let handle = thread::spawn(move || {
                 let status = Command::new(SHELL)

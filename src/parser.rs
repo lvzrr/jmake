@@ -39,12 +39,22 @@ pub fn parse_file(mut defaults: CONFIG) -> CONFIG {
         }
         if inside_pre
         {
-            defaults.pre.push(stripped_line.trim_matches('\'').to_string());
+            defaults.pre.push(
+                stripped_line
+                    .trim_end_matches(',')
+                    .trim_matches('\'')
+                    .to_string()
+            );
             continue;
         }
         if inside_post
         {
-            defaults.post.push(stripped_line.trim_matches('\'').to_string());
+            defaults.post.push(
+                stripped_line
+                    .trim_end_matches(',')
+                    .trim_matches('\'')
+                    .to_string()
+            );
             continue;
         }
         let mut keyword = String::new();
@@ -71,21 +81,32 @@ pub fn parse_file(mut defaults: CONFIG) -> CONFIG {
             "src" => defaults.src = value.trim_matches('\'').to_string(),
             "lib" => defaults.lib = value.trim_matches('\'').to_string(),
             "bin" => defaults.bin = value.trim_matches('\'').to_string(),
-            "test" => defaults.bin = value.trim_matches('\'').to_string(),
+            "test" => defaults.test = value.trim_matches('\'').to_string(),
             "classpath" => defaults.classpath = value.trim_matches('\'').to_string(),
             "comp_flags" => defaults.comp_flags = value.trim_matches('\'').to_string(),
             "cache" => defaults.cache = value.trim_matches('\'').to_string(),
+            "jvm_options" =>
+            {
+                defaults.jvm_options = value
+                    .trim_matches('\'')
+                    .split_whitespace()
+                    .map(|s| s.to_string())
+                    .collect();
+            },
             "threads" => {
-                defaults.threads = match value.trim_matches('\'').parse::<usize>() {
-                    Ok(num) => num,
-                    Err(_) => {
-                        eprintln!("Warning: Invalid THREADS value '{}', using default.", value);
-                        defaults.threads
-                    }
-                };
-            }
+                match value.trim_matches('\'').parse::<usize>()
+                {
+                    Ok(0) =>
+                    {
+                        eprintln!("THREADS set to '0'. Aborting.");
+                        std::process::exit(1);
+                    },
+                    Ok(n) => defaults.threads = n,
+                    Err(_) => eprintln!("Warning: Invalid THREADS value '{}', using default.", value),
+                }
+            },
             _ => { 
-                eprintln!("Warning: Unknown key '{}' in JMakefile", keyword);
+                eprintln!("Warning: Unknown key '{}' in JMakefile, using default value...", keyword);
             }
         }
     }

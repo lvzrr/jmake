@@ -78,21 +78,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                 else
                 {
                     commands.push(cmd);
-                    launch_commands(conf.pre.clone(), &conf)
+                    launch_commands(conf.pre.clone(), &conf, "PRE")
                         .map_err(|e| format!("Failed running PRE commands: {}", e))?;
-                    launch_commands(commands, &conf)
+                    launch_commands(commands, &conf, "COMPILER")
                         .map_err(|e| format!("Compilation failed: {}", e))?;
-                    launch_commands(conf.post.clone(), &conf)
+                    launch_commands(conf.post.clone(), &conf, "POST")
                         .map_err(|e| format!("Failed running POST commands: {}", e))?;
                 }
                 if args.contains(&"-r".to_string())
                     || args.contains(&"--release".to_string())
                     || args.contains(&"--cache".to_string())
                 {
-                    if args.len() < 4
-                    {
-                        return Err("Missing entry point for `build --release`".into());
-                    }
                     let entry_point = &args[3];
                     create_release(target, &conf, entry_point);
                 }
@@ -110,11 +106,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                 else
                 {
                     commands.push(cmd);
-                    launch_commands(conf.pre.clone(), &conf)
+                    launch_commands(conf.pre.clone(), &conf, "PRE")
                         .map_err(|e| format!("Failed running PRE commands: {}", e))?;
-                    launch_commands(commands, &conf)
+                    launch_commands(commands, &conf, "COMPILER")
                         .map_err(|e| format!("Compilation failed: {}", e))?;
-                    launch_commands(conf.post.clone(), &conf)
+                    launch_commands(conf.post.clone(), &conf, "POST")
                         .map_err(|e| format!("Failed running POST commands: {}", e))?;
                 }
                 return run_tests(&target, &conf);
@@ -130,6 +126,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                     conf.run_args = args[3..].to_vec();
                 }
                return run(&target, &conf);
+            }
+            "clean" =>
+            {
+                let bin_path = PathBuf::from(&conf.bin);
+                if bin_path.exists()
+                {
+                    if let Err(e) = std::fs::remove_dir_all(&bin_path)
+                    {
+                        return Err(format!("Failed to clean '{}': {}", conf.bin, e).into());
+                    }
+                    println!("[CLEAN] Deleted directory '{}'", conf.bin);
+                }
+                else
+                {
+                    println!("[CLEAN] Directory '{}' does not exist", conf.bin);
+                }
             }
             _ => print_help(),
         }
