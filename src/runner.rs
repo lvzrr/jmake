@@ -16,7 +16,7 @@ pub fn run(target: &str, conf: &CONFIG) -> Result<(), Box<dyn std::error::Error>
 
 pub fn run_tests(target: &str, conf: &CONFIG) -> Result<(), Box<dyn std::error::Error>>
 {
-    let files: Vec<PathBuf> = get_target_files(target, conf, true, PathType::TESTS)
+    let files: Vec<PathBuf> = get_target_files(target, conf, false, PathType::TESTS)
         .expect("Couldn't get target files");
     let cmd = create_compile_command(target, conf, PathType::TESTS);
     if !cmd.is_empty() {

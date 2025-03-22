@@ -17,15 +17,19 @@ use crate::runner::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>>
 {
+    let home_dir = env::var("HOME")
+        .or_else(|_| env::var("USERPROFILE"))
+        .unwrap_or_else(|_| ".".to_string());
     let mut conf: CONFIG = CONFIG
     {
-        pre :           Vec::new(),
-        src :           String::from("src"),
-        bin :           String::from("bin"),
-        lib :           String::from("lib"),
-        test :          String::from("test"),
-        cache:          PathBuf::from(env::var("HOME").unwrap())
-                        .join(".cache/jmake")
+        pre:           Vec::new(),
+        src:           String::from("src"),
+        bin:           String::from("bin"),
+        lib:           String::from("lib"),
+        test:          String::from("test"),
+        cache:         PathBuf::from(home_dir)
+                        .join(".cache")
+                        .join("jmake")
                         .to_string_lossy()
                         .to_string(),
 
@@ -33,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
         jvm_version:    jni::JNIVersion::V8,
         comp_flags:     String::new(),
         run_args:       Vec::new(),
-        classpath:      String::from("bin:lib/*"),
+        classpath:      if cfg!(windows) { "bin;lib;lib\\*".to_string() } else { "bin:lib:lib/*".to_string() },
         post:           Vec::new(),
         threads:        std::thread::available_parallelism().unwrap().get(),
     };
@@ -95,10 +99,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
             }
             "test" =>
             {
-                if args.len() < 3
-                {
-                    return Err("Missing main class for `test`".into());
-                }
                 let target = if args.len() == 2 { "" } else { &args[2] };
 
                 let mut commands: Vec<String> = Vec::new();
