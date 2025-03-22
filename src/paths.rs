@@ -57,3 +57,35 @@ pub fn check_incremental(file: &Path, conf: &CONFIG, check: bool) -> bool
     };
     src_mod_time > class_mod_time
 }
+
+pub fn expand_classpath(cp: &str) -> String
+{
+    let mut parts = Vec::new();
+    let sep = if cfg!(windows) { ";" } else { ":" };
+
+    for entry in cp.split(sep)
+    {
+        let is_wildcard = entry.ends_with("/*") || entry.ends_with("\\*");
+
+        if is_wildcard
+        {
+            let dir = &entry[..entry.len() - 2];
+            if let Ok(read_dir) = fs::read_dir(dir)
+            {
+                for file in read_dir.flatten()
+                {
+                    let path = file.path();
+                    if path.extension().map_or(false, |ext| ext == "jar")
+                    {
+                        parts.push(path.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+        else
+        {
+            parts.push(entry.to_string());
+        }
+    }
+    parts.join(sep)
+}

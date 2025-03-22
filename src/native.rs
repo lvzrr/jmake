@@ -2,6 +2,7 @@ use jni::{InitArgsBuilder, JavaVM, objects::{JObject, JValue}};
 use std::{path::PathBuf, sync::Arc, time::Instant};
 use crate::config::*;
 use crate::packages::*;
+use crate::paths::*;
 
 pub fn native_runner(files: Vec<PathBuf>, conf: &CONFIG, t: PathType) -> Result<(), Box<dyn std::error::Error>>
 {
@@ -11,7 +12,7 @@ pub fn native_runner(files: Vec<PathBuf>, conf: &CONFIG, t: PathType) -> Result<
         PathType::TESTS => &conf.test,
         PathType::SRC => &conf.src,
     };
-    let classpath_opt = format!("-Djava.class.path={}", conf.classpath);
+    let classpath_opt = format!("-Djava.class.path={}", expand_classpath(&conf.classpath));
     let mut args = InitArgsBuilder::new()
         .version(conf.jvm_version)
         .option(&classpath_opt);
