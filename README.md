@@ -112,6 +112,9 @@ jmake clean
 
 You can customize jmake with a `jmakefile` in the project root. These are the default assumed if no jmakefile is provided:
 
+> [!NOTE]
+> The `classpath` field is automatically set as the jvm classpath argument
+
 ```jmakefile
 src='src'
 test='test'
