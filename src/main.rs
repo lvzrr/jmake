@@ -34,6 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
                         .to_string(),
 
         jvm_options:    Vec::new(),
+        sandbox:        Vec::new(),
         jvm_version:    jni::JNIVersion::V8,
         comp_flags:     String::new(),
         run_args:       Vec::new(),
@@ -95,6 +96,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
             }
             "test" =>
             {
+                if args.contains(&"--sandbox".to_string()) && !conf.sandbox.is_empty()
+                {
+                    conf.jvm_options = conf.sandbox.clone();
+                }
                 let target = if args.len() == 2 { "" } else { &args[2] };
 
                 let mut commands: Vec<String> = Vec::new();
@@ -117,6 +122,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
             }
             "run" =>
             {
+                if args.contains(&"--sandbox".to_string()) && !conf.sandbox.is_empty()
+                {
+                    conf.jvm_options = conf.sandbox.clone();
+                }
                 if args.len() < 3
                 {
                     return Err("Missing main class for `run`".into());

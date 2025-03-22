@@ -1,6 +1,7 @@
 # jmake
 
-**jmake** is a minimalistic, fast Java build tool. It supports incremental compilation, native JNI-based test execution, parallel builds, and a cache system for releases.
+**jmake** is a minimalistic, fast Java build tool.  
+It supports incremental compilation, native JNI-based test execution, parallel builds, and a release cache system.
 
 ---
 
@@ -46,6 +47,9 @@ jmake [command] [target] [flags]
   Compile and run test classes from `test/`.  
   It will look for classes like `<target>.TestsMain`.
 
+- `test <target> --sandbox`  
+  Run tests with restricted JVM options defined under `sandbox`.
+
 - `clean`  
   Delete the contents of the configured `bin/` directory.
 
@@ -53,30 +57,23 @@ jmake [command] [target] [flags]
 
 ## 📊 Project Structure
 
-Here's a typical file layout jmake works with. 
-**Required folders** (you can customize them in the jmakefile) are:
-- `src/` (source files)
-- `bin/` (compiled output)
-- `test/` (test sources)
-
-(All created with `jmake init`)
-
-Everything else is optional:
+Here’s what your project might look like:
 
 > [!WARNING]
-> jmake MUST be run in the root for it to work properly
+> jmake **must** be run from the root directory for correct behavior
+
 ```
 project-root/
 ├── src/                 # [REQUIRED] Java source files
 │   └── MyApp.java
 ├── test/                # [REQUIRED] Test source files
 │   └── MyAppTests.java
-├── bin/                 # [REQUIRED] Compiled classes output
-├── lib/                 # [OPTIONAL] External .class or .jar dependencies
-│   ├── helper.class
-│   └── utils.jar
-├── jmakefile            # [OPTIONAL] Configuration file
-└── scripts/             # [OPTIONAL] Pre/Post build scripts
+├── bin/                 # [REQUIRED] Compiled output
+├── lib/                 # [OPTIONAL] .class or .jar dependencies
+│   ├── Helper.class
+│   └── external.jar
+├── jmake.toml           # [OPTIONAL] Configuration file
+└── scripts/             # [OPTIONAL] Pre/Post build hooks
     ├── precompile.sh
     └── cleanup.sh
 ```
@@ -91,6 +88,7 @@ jmake build mypkg
 jmake build mypkg --release mypkg.Main
 jmake run mypkg.Main arg1 arg2
 jmake test testpkg
+jmake test testpkg --sandbox
 jmake clean
 ```
 
@@ -98,59 +96,63 @@ jmake clean
 
 ## ✨ Features
 
-- ✓ Incremental compilation  
-- ✓ Native & multi-threaded JVM execution using the JNI  
-- ✓ Auto-expanded classpath with JAR and `.class` support  
-- ✓ Lightweight: binaries of **~500kB**  
-- ✓ Cross-platform support (Windows, Linux, macOS)  
-- ✓ Pre/Post build command hooks  
-- ✓ Release system with content-hash caching  
+- ✅ Incremental compilation with smart dependency tracking  
+- ✅ Native & multi-threaded JVM execution via JNI  
+- ✅ Optional sandbox mode for restricted memory/stack test environments  
+- ✅ Classpath expansion: handles `lib/*`, `.jar` and `.class` files  
+- ✅ Lightweight: compiled binary is under **1MB**  
+- ✅ Cross-platform support: Windows, Linux, macOS  
+- ✅ Configurable PRE and POST build steps  
+- ✅ Efficient JAR release system using hash-based caching  
 
 ---
 
-## 📝 Configuration (JMakefile)
+## 🛠 Configuration: `jmake.toml`
 
-You can customize jmake with a `jmakefile` in the project root. These are the default assumed if no jmakefile is provided:
+You can configure all options in a `jmake.toml` file placed at the root.
 
-> [!NOTE]
-> The `classpath` field is automatically set as the jvm classpath argument
+```toml
+src = "src"
+test = "test"
+lib = "lib"
+bin = "bin"
+cache = "~/.cache/jmake"
+classpath = "bin:lib/*"
+comp_flags = "-g"
+threads = 4
+jvm_version = "8"
 
-```jmakefile
-src='src'
-test='test'
-lib='lib'
-bin='bin'
-classpath='bin:lib:lib/*'
-comp_flags=''
-cache='~/.cache/jmake'
-jvm_options=''
-threads='4'
+pre = ["./scripts/precompile.sh", "echo compiling..."]
+post = ["./scripts/cleanup.sh", "echo done."]
+jvm_options = ["-Xmx512m"]
+run_args = ["arg1", "arg2"]
 
-//Actually threads will calculate the max amount 
-//allowed for your system by default
-
-pre={
-    // './scripts/precompile.sh',
-    // 'echo preparing environment...'
-};
-
-post={
-    // './scripts/cleanup.sh',
-    // 'echo done.'
-};
+# Will override jvm_options when running tests with --sandbox
+sandbox = ["-Xmx64m", "-Xss256k"]
 ```
 
+You may also write multiline arrays:
+
+```toml
+pre = [
+  "echo hello",
+  "sh runme.sh"
+]
+```
+
+Quotes (`"` or `'`) around strings are optional and trimmed automatically.
+
 ---
 
-## 📝 Notes
+## 📎 Notes
 
-- If you do not specify a package to `init` or `build`, it will just look for all `*.java` files under `src/`.  
-- Java classes in `lib/` without a package cannot be imported, just use them directly.  
-- jmake will automatically expand `"lib/*"` to include all `.jar`s and include `"lib/"` for `.class` files.  
+- If no target is specified for `build`, all `*.java` in `src/` are compiled.  
+- Files in `lib/` that are not part of a package cannot be imported; use them as raw dependencies.  
+- Classpath entries like `"lib/*"` are auto-expanded during both compile and run.  
+- When running with `--sandbox`, `jvm_options` is replaced by the `sandbox` config for tighter resource control.  
 
 ---
 
 ## 💼 License
 
-MIT License. See the [LICENSE](./LICENSE) file.
-
+MIT License — see the [LICENSE](./LICENSE) file.

@@ -25,4 +25,5 @@ pub struct  CONFIG
     pub threads:        usize,
     pub jvm_version:    jni::JNIVersion,
     pub jvm_options:    Vec<String>,
+    pub sandbox:        Vec<String>,
 }
